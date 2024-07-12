@@ -1,7 +1,6 @@
 import streamlit as st
 import tensorflow as tf
 from tensorflow.keras.preprocessing import image
-from tensorflow.keras.layers import TFSMLayer
 from PIL import Image
 import os
 
@@ -18,9 +17,7 @@ def load_model():
         st.error(f"Model directory not found: {model_path}")
         return None
     try:
-        # Load the model using TFSMLayer
-        tfsm_layer = TFSMLayer(model_path, call_endpoint='serving_default')
-        model = tf.keras.Sequential([tf.keras.Input(shape=(150, 150, 3)), tfsm_layer])
+        model = tf.keras.models.load_model(model_path)
         return model
     except Exception as e:
         st.error(f"Error loading model: {e}")
