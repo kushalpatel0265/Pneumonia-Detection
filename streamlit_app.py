@@ -12,9 +12,9 @@ st.write(f"Current working directory: {os.getcwd()}")
 # Load the model
 @st.cache_resource
 def load_model():
-    model_path = 'model.h5'
+    model_path = 'saved_model/'
     if not os.path.exists(model_path):
-        st.error(f"Model file not found: {model_path}")
+        st.error(f"Model directory not found: {model_path}")
         return None
     try:
         model = tf.keras.models.load_model(model_path)
