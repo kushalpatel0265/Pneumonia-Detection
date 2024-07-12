@@ -1,7 +1,6 @@
 import streamlit as st
 import tensorflow as tf
 from tensorflow.keras.preprocessing import image
-from tensorflow.keras.layers import TFSMLayer
 from PIL import Image
 import os
 
@@ -18,9 +17,7 @@ def load_model():
         st.error(f"Model directory not found: {model_path}")
         return None
     try:
-        # Load the model using TFSMLayer
-        tfsm_layer = TFSMLayer(model_path, call_endpoint='serving_default')
-        model = tf.keras.Sequential([tf.keras.Input(shape=(150, 150, 3)), tfsm_layer])
+        model = tf.saved_model.load(model_path)
         return model
     except Exception as e:
         st.error(f"Error loading model: {e}")
@@ -30,6 +27,11 @@ if 'loaded_model' not in st.session_state:
     st.session_state['loaded_model'] = load_model()
 
 loaded_model = st.session_state['loaded_model']
+
+# Create a temporary directory for saving uploaded files
+temp_dir = "temp"
+if not os.path.exists(temp_dir):
+    os.makedirs(temp_dir)
 
 # File uploader
 file = st.sidebar.file_uploader("Please upload your X-Ray image (PNG, JPG, JPEG)", type=["png", "jpg", "jpeg"])
@@ -43,7 +45,10 @@ def predict(image_path, model):
     image1 = image1.reshape((1, image1.shape[0], image1.shape[1], image1.shape[2]))
     img_array = image1 / 255.0
     
-    prediction = model.predict(img_array)
+    # Create a serving function
+    infer = model.signatures["serving_default"]
+    prediction = infer(tf.constant(img_array))['dense'].numpy()
+    
     if prediction[0][0] > 0.6:
         return "You have a high chance of having Pneumonia. Please consult a doctor."
     else:
@@ -53,7 +58,7 @@ if file is not None:
     try:
         img = Image.open(file).convert('RGB')
         st.image(img, caption='Uploaded Image.', use_column_width=True)
-        img_path = os.path.join("temp", file.name)
+        img_path = os.path.join(temp_dir, file.name)
         img.save(img_path)
         prediction = predict(img_path, loaded_model)
         st.success(prediction)
