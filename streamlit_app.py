@@ -2,14 +2,20 @@ import streamlit as st
 import tensorflow as tf
 from tensorflow.keras.preprocessing import image
 from PIL import Image
+import os
 
 st.title("Pneumonia Detection Machine")
 
-# Load the model
+st.write(f"Current working directory: {os.getcwd()}")
+
 @st.cache_resource
 def load_model():
+    model_path = 'model.h5'
+    if not os.path.exists(model_path):
+        st.error(f"Model file not found: {model_path}")
+        return None
     try:
-        model = tf.keras.models.load_model('model.h5')
+        model = tf.keras.models.load_model(model_path)
         return model
     except Exception as e:
         st.error(f"Error loading model: {e}")
@@ -17,7 +23,6 @@ def load_model():
 
 loaded_model = load_model()
 
-# File uploader
 file = st.sidebar.file_uploader("Please upload your X-Ray image (PNG, JPG, JPEG)", type=["png", "jpg", "jpeg"])
 
 def predict(image_path, model):
