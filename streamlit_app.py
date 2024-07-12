@@ -50,7 +50,10 @@ if file is not None:
     try:
         img = Image.open(file).convert('RGB')
         st.image(img, caption='Uploaded Image.', use_column_width=True)
-        prediction = predict(file, loaded_model)
+        img_path = os.path.join("temp", file.name)
+        img.save(img_path)
+        prediction = predict(img_path, loaded_model)
         st.success(prediction)
+        os.remove(img_path)
     except Exception as e:
         st.error(f"Error processing file: {e}")
