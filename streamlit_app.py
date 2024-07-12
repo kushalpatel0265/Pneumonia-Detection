@@ -23,7 +23,10 @@ def load_model():
         st.error(f"Error loading model: {e}")
         return None
 
-loaded_model = load_model()
+if 'loaded_model' not in st.session_state:
+    st.session_state['loaded_model'] = load_model()
+
+loaded_model = st.session_state['loaded_model']
 
 # File uploader
 file = st.sidebar.file_uploader("Please upload your X-Ray image (PNG, JPG, JPEG)", type=["png", "jpg", "jpeg"])
@@ -44,7 +47,10 @@ def predict(image_path, model):
         return "You have a low chance of having Pneumonia. Nothing to panic!"
 
 if file is not None:
-    img = Image.open(file).convert('RGB')
-    st.image(img, caption='Uploaded Image.', use_column_width=True)
-    prediction = predict(file, loaded_model)
-    st.success(prediction)
+    try:
+        img = Image.open(file).convert('RGB')
+        st.image(img, caption='Uploaded Image.', use_column_width=True)
+        prediction = predict(file, loaded_model)
+        st.success(prediction)
+    except Exception as e:
+        st.error(f"Error processing file: {e}")
